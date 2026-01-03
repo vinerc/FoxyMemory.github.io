@@ -7,7 +7,7 @@
     <style>
         /* ⬇️ AJUSTE AQUI O TAMANHO DE TUDO ⬇️ */
         :root {
-            --fator-escala: 2; /* Mude para 1, 1.5, 2, 2.5, etc. */
+            --fator-escala: 1.8; /* Mude para 1, 1.5, 2, 2.5, etc. */
             
             /* Cálculos automáticos baseados no fator */
             --tamanho-quadrado: calc(120px * var(--fator-escala));
@@ -70,7 +70,7 @@
         <button onclick="iniciarJogo()">Iniciar</button>
         <button onclick="proximoRound()">Próximo Round</button>
         <label>
-            <input type="checkbox" id="chkLimitar"> Limitar cores por round
+            <input type="checkbox" id="chkLimitar" checked> Limitar cores por round
         </label>
         <div class="round-label" id="roundLabel">Round: 1/7</div>
     </div>
