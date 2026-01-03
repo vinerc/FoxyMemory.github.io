@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoxyMemory Web</title>
+    <style>
+        body { font-family: 'Helvetica', sans-serif; background-color: #f0f0f0; display: flex; flex-direction: column; align-items: center; }
+        
+        /* Cabeçalho e Controles */
+        .header { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 20px; display: flex; gap: 15px; align-items: center; }
+        .round-label { font-size: 1.2rem; font-weight: bold; margin-left: auto; }
+        
+        /* Tabuleiro */
+        .board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: #ddd; padding: 10px; border-radius: 4px; }
+        
+        /* Cada Quadrado (Container) */
+        .square {
+            width: 120px; height: 120px;
+            background: white; border: 2px solid black;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; position: relative;
+        }
+
+        /* Grid de Miniaturas dentro do quadrado */
+        .options-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; }
+        
+        .thumb-btn {
+            width: 32px; height: 32px;
+            border: 1px solid #ccc; cursor: pointer;
+            background-size: cover; background-position: center;
+            padding: 0; background-color: white;
+        }
+
+        .thumb-btn:hover { border-color: #000; }
+        .thumb-btn.disabled { display: none; }
+
+        /* Imagem Cheia */
+        .full-img { width: 100%; height: 100%; object-fit: cover; }
+
+        button { cursor: pointer; padding: 8px 16px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <button onclick="iniciarJogo()">Iniciar</button>
+        <button onclick="proximoRound()">Próximo Round</button>
+        <label>
+            <input type="checkbox" id="chkLimitar"> Limitar cores por round
+        </label>
+        <div class="round-label" id="roundLabel">Round: 1/7</div>
+    </div>
+
+    <div class="board" id="board">
+        </div>
+
+    <script>
+        let currentRound = 1;
+        let selectedColors = new Set();
+        const limitesPorRound = {1: 2, 2: 2, 3: 3, 4: 3, 5: 4, 6: 4, 7: 5};
+        
+        // Simulação das 6 imagens
+        const imagePaths = [
+            'imagem1.png', 'imagem2.png', 'imagem3.png', 
+            'imagem4.png', 'imagem5.png', 'imagem6.png'
+        ];
+
+        function createBoard() {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+            
+            for (let i = 0; i < 12; i++) {
+                const square = document.createElement('div');
+                square.className = 'square';
+                square.dataset.index = i;
+                
+                const optionsGrid = document.createElement('div');
+                optionsGrid.className = 'options-grid';
+                
+                imagePaths.forEach((path, imgIdx) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'thumb-btn';
+                    btn.style.backgroundImage = `url(${path})`;
+                    btn.onclick = () => selecionarImagem(square, imgIdx);
+                    
+                    // Verifica se deve estar oculto pelo limite
+                    if (document.getElementById('chkLimitar').checked) {
+                        const limite = limitesPorRound[currentRound];
+                        if (selectedColors.size >= limite && !selectedColors.has(imgIdx)) {
+                            btn.classList.add('disabled');
+                        }
+                    }
+                    
+                    optionsGrid.appendChild(btn);
+                });
+                
+                square.appendChild(optionsGrid);
+                board.appendChild(square);
+            }
+        }
+
+        function selecionarImagem(square, imgIdx) {
+            // Limpa o quadrado e coloca a imagem cheia
+            square.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = imagePaths[imgIdx];
+            img.className = 'full-img';
+            square.appendChild(img);
+
+            // Registra a cor
+            selectedColors.add(imgIdx);
+            
+            // Se limite ativo, atualiza outros botões
+            verificarLimites();
+        }
+
+        function verificarLimites() {
+            if (!document.getElementById('chkLimitar').checked) return;
+
+            const limite = limitesPorRound[currentRound];
+            if (selectedColors.size >= limite) {
+                const todosBotoes = document.querySelectorAll('.thumb-btn');
+                todosBotoes.forEach(btn => {
+                    // Descobre qual imagem esse botão representa
+                    const bgImg = btn.style.backgroundImage;
+                    const idx = imagePaths.findIndex(path => bgImg.includes(path));
+                    
+                    if (!selectedColors.has(idx)) {
+                        btn.classList.add('disabled');
+                    }
+                });
+            }
+        }
+
+        function iniciarJogo() {
+            currentRound = 1;
+            selectedColors.clear();
+            document.getElementById('roundLabel').innerText = `Round: ${currentRound}/7`;
+            createBoard();
+        }
+
+        function proximoRound() {
+            if (currentRound < 7) {
+                currentRound++;
+                selectedColors.clear();
+                document.getElementById('roundLabel').innerText = `Round: ${currentRound}/7`;
+                createBoard();
+            } else {
+                document.getElementById('roundLabel').innerText = "Fim de Jogo!";
+            }
+        }
+
+        // Inicializa o tabuleiro ao carregar
+        createBoard();
+    </script>
+</body>
+</html>
