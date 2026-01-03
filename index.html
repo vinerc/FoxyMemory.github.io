@@ -92,4 +92,77 @@
             const board = document.getElementById('board');
             board.innerHTML = '';
             
-            for (let i = 0; i < 12;
+            for (let i = 0; i < 12; i++) {
+                const square = document.createElement('div');
+                square.className = 'square';
+                
+                const optionsGrid = document.createElement('div');
+                optionsGrid.className = 'options-grid';
+                
+                imagePaths.forEach((path, imgIdx) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'thumb-btn';
+                    btn.style.backgroundImage = `url('${path}')`;
+                    btn.onclick = () => selecionarImagem(square, imgIdx);
+                    
+                    if (document.getElementById('chkLimitar').checked) {
+                        const limite = limitesPorRound[currentRound];
+                        if (selectedColors.size >= limite && !selectedColors.has(imgIdx)) {
+                            btn.classList.add('disabled');
+                        }
+                    }
+                    optionsGrid.appendChild(btn);
+                });
+                
+                square.appendChild(optionsGrid);
+                board.appendChild(square);
+            }
+        }
+
+        function selecionarImagem(square, imgIdx) {
+            square.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = imagePaths[imgIdx];
+            img.className = 'full-img';
+            square.appendChild(img);
+            selectedColors.add(imgIdx);
+            verificarLimites();
+        }
+
+        function verificarLimites() {
+            if (!document.getElementById('chkLimitar').checked) return;
+            const limite = limitesPorRound[currentRound];
+            if (selectedColors.size >= limite) {
+                const todosBotoes = document.querySelectorAll('.thumb-btn');
+                todosBotoes.forEach(btn => {
+                    const bgImg = btn.style.backgroundImage;
+                    const idx = imagePaths.findIndex(path => bgImg.includes(path));
+                    if (idx !== -1 && !selectedColors.has(idx)) {
+                        btn.classList.add('disabled');
+                    }
+                });
+            }
+        }
+
+        function iniciarJogo() {
+            currentRound = 1;
+            selectedColors.clear();
+            document.getElementById('roundLabel').innerText = `Round: ${currentRound}/7`;
+            createBoard();
+        }
+
+        function proximoRound() {
+            if (currentRound < 7) {
+                currentRound++;
+                selectedColors.clear();
+                document.getElementById('roundLabel').innerText = `Round: ${currentRound}/7`;
+                createBoard();
+            } else {
+                document.getElementById('roundLabel').innerText = "Fim de Jogo!";
+            }
+        }
+
+        createBoard();
+    </script>
+</body>
+</html>
