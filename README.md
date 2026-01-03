@@ -1,1 +1,1 @@
-# FoxyMemor.github.io
+# FoxyMemory.github.io
