@@ -3,25 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FoxyMemory Web - Escalonável</title>
+    <title>Foxy Suite - Dashboard</title>
     <style>
-        /* ⬇️ AJUSTE AQUI O TAMANHO DE TUDO ⬇️ */
         :root {
-            --fator-escala: 1.8; /* Mude para 1, 1.5, 2, 2.5, etc. */
+            /* Variáveis do Sistema */
+            --sidebar-width: 250px;
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --bg-color: #f4f7f6;
             
-            /* Cálculos automáticos baseados no fator */
+            /* Variáveis do Foxy Memory (Sua escala) */
+            --fator-escala: 1.5; 
             --tamanho-quadrado: calc(120px * var(--fator-escala));
             --tamanho-miniatura: calc(34px * var(--fator-escala)); 
             --gap-tabuleiro: calc(10px * var(--fator-escala));
             --borda-quadrado: calc(2px * var(--fator-escala));
         }
 
-        body { font-family: 'Helvetica', sans-serif; background-color: #f0f0f0; display: flex; flex-direction: column; align-items: center; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- BARRA LATERAL (SIDEBAR) --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-header {
+            padding: 30px 20px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-menu {
+            flex: 1;
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            padding: 15px 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            color: #bdc3c7;
+            text-decoration: none;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background-color: #34495e;
+            color: white;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        /* --- ÁREA DE CONTEÚDO --- */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .tab-content {
+            display: none;
+            width: 100%;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        /* --- ESTILOS ESPECÍFICOS DO FOXY MEMORY --- */
+        .header-game { 
+            background: white; padding: 20px; border-radius: 8px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; 
+            display: flex; gap: 15px; align-items: center; width: fit-content;
+        }
         
-        .header { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 20px; display: flex; gap: 15px; align-items: center; }
-        .round-label { font-size: 1.2rem; font-weight: bold; margin-left: auto; }
+        .round-label { font-size: 1.2rem; font-weight: bold; }
         
-        /* Tabuleiro escalonável */
         .board { 
             display: grid; 
             grid-template-columns: repeat(4, 1fr); 
@@ -31,27 +108,20 @@
             border-radius: 4px; 
         }
         
-        /* Quadrado principal escalonável */
         .square {
-            width: var(--tamanho-quadrado); 
-            height: var(--tamanho-quadrado);
-            background: white; 
-            border: var(--borda-quadrado) solid black;
+            width: var(--tamanho-quadrado); height: var(--tamanho-quadrado);
+            background: white; border: var(--borda-quadrado) solid black;
             display: flex; justify-content: center; align-items: center;
             overflow: hidden; position: relative;
         }
 
-        /* Grid de Miniaturas */
         .options-grid { 
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: calc(2px * var(--fator-escala)); 
-            padding: calc(2px * var(--fator-escala)); 
+            display: grid; grid-template-columns: repeat(3, 1fr); 
+            gap: calc(2px * var(--fator-escala)); padding: calc(2px * var(--fator-escala)); 
         }
         
         .thumb-btn {
-            width: var(--tamanho-miniatura); 
-            height: var(--tamanho-miniatura);
+            width: var(--tamanho-miniatura); height: var(--tamanho-miniatura);
             border: 1px solid #ccc; cursor: pointer;
             background-size: cover; background-position: center;
             padding: 0; background-color: white;
@@ -59,43 +129,81 @@
 
         .thumb-btn:hover { border-color: #000; }
         .thumb-btn.disabled { display: none; }
-
         .full-img { width: 100%; height: 100%; object-fit: cover; }
-        button { cursor: pointer; padding: 8px 16px; font-size: 1rem; }
+        
+        button { 
+            cursor: pointer; padding: 8px 16px; font-size: 1rem;
+            background-color: var(--accent-color); color: white;
+            border: none; border-radius: 4px; transition: opacity 0.2s;
+        }
+        button:hover { opacity: 0.9; }
+
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <button onclick="iniciarJogo()">Iniciar</button>
-        <button onclick="proximoRound()">Próximo Round</button>
-        <label>
-            <input type="checkbox" id="chkLimitar" checked> Limitar cores por round
-        </label>
-        <div class="round-label" id="roundLabel">Round: 1/7</div>
-    </div>
+    <nav class="sidebar">
+        <div class="sidebar-header">Foxy Suite</div>
+        <div class="sidebar-menu">
+            <div class="menu-item active" onclick="switchTab('foxy-memory')">🦊 Foxy Memory</div>
+            <div class="menu-item" onclick="switchTab('configuracoes')">⚙️ Configurações</div>
+            <div class="menu-item" onclick="switchTab('sobre')">ℹ️ Sobre</div>
+        </div>
+    </nav>
 
-    <div class="board" id="board"></div>
+    <main class="main-content">
+        
+        <div id="foxy-memory" class="tab-content active">
+            <div class="header-game">
+                <button onclick="iniciarJogo()">Iniciar</button>
+                <button onclick="proximoRound()">Próximo Round</button>
+                <label>
+                    <input type="checkbox" id="chkLimitar" checked> Limitar cores
+                </label>
+                <div class="round-label" id="roundLabel">Round: 1/7</div>
+            </div>
+
+            <div class="board" id="board"></div>
+        </div>
+
+        <div id="configuracoes" class="tab-content">
+            <h2>Configurações</h2>
+            <p style="margin-top: 20px;">Aqui você poderá ajustar preferências globais futuramente.</p>
+        </div>
+
+        <div id="sobre" class="tab-content">
+            <h2>Sobre o Foxy Suite</h2>
+            <p style="margin-top: 20px;">Desenvolvido para auxiliar no treinamento de memória visual.</p>
+        </div>
+
+    </main>
 
     <script>
+        /* --- LÓGICA DE NAVEGAÇÃO --- */
+        function switchTab(tabId) {
+            // Remove active de todos
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+
+            // Adiciona active no selecionado
+            document.getElementById(tabId).classList.add('active');
+            
+            // Marca o item do menu como ativo
+            event.currentTarget.classList.add('active');
+        }
+
+        /* --- LÓGICA DO JOGO FOXY MEMORY --- */
         let currentRound = 1;
         let selectedColors = new Set();
         const limitesPorRound = {1: 2, 2: 2, 3: 3, 4: 3, 5: 4, 6: 4, 7: 5};
-        
-        // Caminhos das imagens (ajustado para o "I" maiúsculo que você mencionou)
-        const imagePaths = [
-            'Imagem1.png', 'Imagem2.png', 'Imagem3.png', 
-            'Imagem4.png', 'Imagem5.png', 'Imagem6.png'
-        ];
+        const imagePaths = ['Imagem1.png', 'Imagem2.png', 'Imagem3.png', 'Imagem4.png', 'Imagem5.png', 'Imagem6.png'];
 
         function createBoard() {
             const board = document.getElementById('board');
             board.innerHTML = '';
-            
             for (let i = 0; i < 12; i++) {
                 const square = document.createElement('div');
                 square.className = 'square';
-                
                 const optionsGrid = document.createElement('div');
                 optionsGrid.className = 'options-grid';
                 
@@ -113,7 +221,6 @@
                     }
                     optionsGrid.appendChild(btn);
                 });
-                
                 square.appendChild(optionsGrid);
                 board.appendChild(square);
             }
@@ -162,6 +269,7 @@
             }
         }
 
+        // Inicia o tabuleiro na carga inicial
         createBoard();
     </script>
 </body>
